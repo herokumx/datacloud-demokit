@@ -1,0 +1,25 @@
+trigger genieDemoWebEventTrigger on genieDemoWebEvent__e (after insert) {
+    List<STWebapppushFunctionHandler.InputVariables> requests= new List<STWebapppushFunctionHandler.InputVariables>();
+    DateTime platformEventInvokedOn = System.now();
+    
+    // Iterate through each event message, adding to list
+    for (genieDemoWebEvent__e event : Trigger.New){
+        // Add id to list
+        STWebapppushFunctionHandler.InputVariables input = new STWebapppushFunctionHandler.InputVariables(); 
+        input.emailId=event.genieDemo_attributesEmail__c;
+        input.firstName=event.genieDemo_attributesFirstName__c;
+        input.lastName=event.genieDemo_attributesLastName__c;
+        input.interactionName=event.genieDemo_interactionName__c;
+        System.debug('event time:' + event.dataActionInitiatedOn__c);
+        if(String.isNotEmpty(event.dataActionInitiatedOn__c)){
+            input.dataActionInitiatedOn = (DateTime)json.deserialize(event.dataActionInitiatedOn__c, datetime.class);
+        }
+        input.platformEventInvokedOn=platformEventInvokedOn;
+        requests.Add(input);
+    }
+    
+    if(requests.size() > 0){
+        // Pass the Ids to the STWebapppushFunctionHandler
+        STWebapppushFunctionHandler.invokeFunction(requests);
+    }
+}
